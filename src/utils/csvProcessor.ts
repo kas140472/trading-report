@@ -116,8 +116,8 @@ function detectCSVFormat(headers: string[]): { hasDeployColumn: boolean; columnM
     columnMapping['Value'] = 7;
     columnMapping['Tag'] = 8;
   } else {
-    // Format: Time,Symbol,Price,Quantity,Type,Status,Value,Tag (or similar)
-    // Find column indices by name
+    // Format: Time,Symbol,Price,Quantity,Type,Status,Value,Tag
+    // Find column indices by matching header names
     headers.forEach((header, index) => {
       const normalizedHeader = header.trim();
       columnMapping[normalizedHeader] = index;
@@ -150,13 +150,13 @@ async function loadOrdersFromCSV(file: File): Promise<Order[]> {
         
         // Check for required columns based on format
         const requiredColumns = ['Time', 'Symbol', 'Price', 'Quantity', 'Type', 'Status'];
-        const missingColumns = requiredColumns.filter(col => {
-          if (hasDeployColumn) {
-            return columnMapping[col] === undefined;
-          } else {
-            return !headers.includes(col);
+        const missingColumns: string[] = [];
+        
+        for (const col of requiredColumns) {
+          if (columnMapping[col] === undefined) {
+            missingColumns.push(col);
           }
-        });
+        }
         
         if (missingColumns.length > 0) {
           reject(new Error(`Missing required columns: ${missingColumns.join(', ')}`));
@@ -174,41 +174,14 @@ async function loadOrdersFromCSV(file: File): Promise<Order[]> {
           if (values.length < headers.length) continue;
           
           try {
-            let timeValue: string;
-            let symbolValue: string;
-            let priceValue: string;
-            let quantityValue: string;
-            let typeValue: string;
-            let statusValue: string;
-            let valueValue: string;
-            let tagValue: string;
-            
-            if (hasDeployColumn) {
-              // Use fixed positions for the new format
-              timeValue = values[columnMapping['Time']] || '';
-              symbolValue = values[columnMapping['Symbol']] || '';
-              priceValue = values[columnMapping['Price']] || '';
-              quantityValue = values[columnMapping['Quantity']] || '';
-              typeValue = values[columnMapping['Type']] || '';
-              statusValue = values[columnMapping['Status']] || '';
-              valueValue = values[columnMapping['Value']] || '';
-              tagValue = values[columnMapping['Tag']] || '';
-            } else {
-              // Use header-based mapping for the original format
-              const rowData: { [key: string]: string } = {};
-              headers.forEach((header, index) => {
-                rowData[header] = values[index] || '';
-              });
-              
-              timeValue = rowData['Time'] || '';
-              symbolValue = rowData['Symbol'] || '';
-              priceValue = rowData['Price'] || '';
-              quantityValue = rowData['Quantity'] || '';
-              typeValue = rowData['Type'] || '';
-              statusValue = rowData['Status'] || '';
-              valueValue = rowData['Value'] || '';
-              tagValue = rowData['Tag'] || '';
-            }
+            const timeValue = values[columnMapping['Time']] || '';
+            const symbolValue = values[columnMapping['Symbol']] || '';
+            const priceValue = values[columnMapping['Price']] || '';
+            const quantityValue = values[columnMapping['Quantity']] || '';
+            const typeValue = values[columnMapping['Type']] || '';
+            const statusValue = values[columnMapping['Status']] || '';
+            const valueValue = values[columnMapping['Value']] || '';
+            const tagValue = values[columnMapping['Tag']] || '';
             
             const order: Order = {
               timestamp: parseTimestamp(timeValue),
