@@ -1,9 +1,11 @@
 
 import { Button } from '@/components/ui/button';
-import { Download, FileText, Loader2 } from 'lucide-react';
+import { Download, FileText, Loader2, Maximize2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useState } from 'react';
 
 interface ReportDisplayProps {
   report: string | null;
@@ -178,6 +180,8 @@ const parseReport = (reportText: string): ParsedReport => {
 };
 
 const ReportDisplay = ({ report, isProcessing }: ReportDisplayProps) => {
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+
   const downloadReport = () => {
     if (!report) return;
     
@@ -238,6 +242,266 @@ const ReportDisplay = ({ report, isProcessing }: ReportDisplayProps) => {
 
   const parsedReport = parseReport(report);
 
+  const ReportContent = ({ isFullscreen = false }: { isFullscreen?: boolean }) => (
+    <ScrollArea className={isFullscreen ? "h-[80vh]" : "flex-1"}>
+      <div className="space-y-6 pr-4">
+        {/* Header */}
+        <Card className="bg-gradient-to-r from-slate-800 to-slate-700 text-white border-0">
+          <CardHeader className="text-center py-6">
+            <CardTitle className="text-2xl font-bold mb-2">FUTURES TRADING PERFORMANCE REPORT</CardTitle>
+            <p className="text-slate-300">Generated on: {parsedReport.generatedOn}</p>
+          </CardHeader>
+        </Card>
+
+        {/* Overall Performance */}
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
+            <CardTitle className="text-lg flex items-center">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Overall Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="text-center p-3 bg-blue-50 rounded-xl border border-blue-100">
+                <p className="text-2xl font-bold text-blue-600 mb-1">{parsedReport.overallPerformance.totalTrades}</p>
+                <p className="text-xs text-blue-700 font-medium">Total Trades</p>
+              </div>
+              <div className="text-center p-3 bg-green-50 rounded-xl border border-green-100">
+                <p className="text-2xl font-bold text-green-600 mb-1">{parsedReport.overallPerformance.winningTrades}</p>
+                <p className="text-xs text-green-700 font-medium">Winning Trades</p>
+              </div>
+              <div className="text-center p-3 bg-red-50 rounded-xl border border-red-100">
+                <p className="text-2xl font-bold text-red-600 mb-1">{parsedReport.overallPerformance.losingTrades}</p>
+                <p className="text-xs text-red-700 font-medium">Losing Trades</p>
+              </div>
+              <div className="text-center p-3 bg-purple-50 rounded-xl border border-purple-100">
+                <p className="text-2xl font-bold text-purple-600 mb-1">{parsedReport.overallPerformance.winRate}</p>
+                <p className="text-xs text-purple-700 font-medium">Win Rate</p>
+              </div>
+              <div className="text-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                <p className="text-2xl font-bold text-emerald-600 mb-1">{parsedReport.overallPerformance.totalPL}</p>
+                <p className="text-xs text-emerald-700 font-medium">Total P/L</p>
+              </div>
+              <div className="text-center p-3 bg-orange-50 rounded-xl border border-orange-100">
+                <p className="text-2xl font-bold text-orange-600 mb-1">{parsedReport.overallPerformance.profitFactor}</p>
+                <p className="text-xs text-orange-700 font-medium">Profit Factor</p>
+              </div>
+            </div>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl border">
+              <div className="text-center">
+                <p className="text-xs text-slate-600 mb-1">Average Gain</p>
+                <p className="font-semibold text-slate-800 text-sm">{parsedReport.overallPerformance.avgGain}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-slate-600 mb-1">Average Loss</p>
+                <p className="font-semibold text-slate-800 text-sm">{parsedReport.overallPerformance.avgLoss}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-slate-600 mb-1">Average Size</p>
+                <p className="font-semibold text-slate-800 text-sm">{parsedReport.overallPerformance.avgSize}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Position Breakdown */}
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+          <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-lg">
+            <CardTitle className="text-lg flex items-center">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+              Position Breakdown
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-3 bg-blue-50 rounded-xl border border-blue-100">
+                <p className="text-xl font-bold text-blue-600 mb-1">{parsedReport.positionBreakdown.longTrades}</p>
+                <p className="text-xs text-blue-700 font-medium">Long Trades</p>
+              </div>
+              <div className="text-center p-3 bg-red-50 rounded-xl border border-red-100">
+                <p className="text-xl font-bold text-red-600 mb-1">{parsedReport.positionBreakdown.shortTrades}</p>
+                <p className="text-xs text-red-700 font-medium">Short Trades</p>
+              </div>
+              <div className="text-center p-3 bg-green-50 rounded-xl border border-green-100">
+                <p className="text-xl font-bold text-green-600 mb-1">{parsedReport.positionBreakdown.longPL}</p>
+                <p className="text-xs text-green-700 font-medium">Long P/L</p>
+              </div>
+              <div className="text-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                <p className="text-xl font-bold text-emerald-600 mb-1">{parsedReport.positionBreakdown.shortPL}</p>
+                <p className="text-xs text-emerald-700 font-medium">Short P/L</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Realized Trades */}
+        {parsedReport.trades.length > 0 && (
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+            <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-lg">
+              <CardTitle className="text-lg flex items-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+                Realized Trades ({parsedReport.trades.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-slate-50 hover:bg-slate-50">
+                      <TableHead className="font-semibold text-slate-700 text-xs">ID</TableHead>
+                      <TableHead className="font-semibold text-slate-700 text-xs">Symbol</TableHead>
+                      <TableHead className="font-semibold text-slate-700 text-xs">Position</TableHead>
+                      <TableHead className="font-semibold text-slate-700 text-xs">Entry Time</TableHead>
+                      <TableHead className="font-semibold text-slate-700 text-xs">Exit Time</TableHead>
+                      <TableHead className="font-semibold text-slate-700 text-xs">Qty</TableHead>
+                      <TableHead className="font-semibold text-slate-700 text-xs">Entry</TableHead>
+                      <TableHead className="font-semibold text-slate-700 text-xs">Exit</TableHead>
+                      <TableHead className="font-semibold text-slate-700 text-xs">Profit</TableHead>
+                      <TableHead className="font-semibold text-slate-700 text-xs">Gain %</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parsedReport.trades.map((trade, index) => (
+                      <TableRow key={index} className="hover:bg-slate-50/50">
+                        <TableCell className="font-medium text-slate-600 text-xs">{trade.id}</TableCell>
+                        <TableCell className="font-bold text-slate-800 text-xs">{trade.symbol}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            trade.position === 'long' 
+                              ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                              : 'bg-red-100 text-red-800 border border-red-200'
+                          }`}>
+                            {trade.position.toUpperCase()}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-xs text-slate-600 font-mono">{trade.entryTime}</TableCell>
+                        <TableCell className="text-xs text-slate-600 font-mono">{trade.exitTime}</TableCell>
+                        <TableCell className="font-medium text-xs">{trade.qty}</TableCell>
+                        <TableCell className="font-mono text-xs">{trade.entry}</TableCell>
+                        <TableCell className="font-mono text-xs">{trade.exit}</TableCell>
+                        <TableCell className={`font-bold text-xs ${
+                          trade.profit.includes('-') ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                          {trade.profit}
+                        </TableCell>
+                        <TableCell className={`font-medium text-xs ${
+                          trade.gainPercent.includes('-') ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                          {trade.gainPercent}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Performance by Product */}
+        {parsedReport.performanceByProduct.length > 0 && (
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+            <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
+              <CardTitle className="text-lg">Performance by Product</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50 hover:bg-slate-50">
+                    <TableHead className="font-semibold text-slate-700 text-xs">Symbol</TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-xs">Type</TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-xs">Trades</TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-xs">Win %</TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-xs">Total P/L</TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-xs">Avg %</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {parsedReport.performanceByProduct.map((product, index) => (
+                    <TableRow key={index} className="hover:bg-slate-50/50">
+                      <TableCell className="font-bold text-slate-800 text-xs">{product.symbol}</TableCell>
+                      <TableCell className="text-slate-600 text-xs">{product.type}</TableCell>
+                      <TableCell className="font-medium text-xs">{product.trades}</TableCell>
+                      <TableCell className="font-medium text-xs">{product.winPercent}</TableCell>
+                      <TableCell className={`font-bold text-xs ${
+                        product.totalPL.includes('-') ? 'text-red-600' : 'text-green-600'
+                      }`}>
+                        {product.totalPL}
+                      </TableCell>
+                      <TableCell className="font-medium text-xs">{product.avgPercent}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Performance by Position Type */}
+        {parsedReport.performanceByPosition.length > 0 && (
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
+            <CardHeader className="bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-t-lg">
+              <CardTitle className="text-lg">Performance by Position Type</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50 hover:bg-slate-50">
+                    <TableHead className="font-semibold text-slate-700 text-xs">Position</TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-xs">Trades</TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-xs">Win %</TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-xs">Total P/L</TableHead>
+                    <TableHead className="font-semibold text-slate-700 text-xs">Avg %</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {parsedReport.performanceByPosition.map((position, index) => (
+                    <TableRow key={index} className="hover:bg-slate-50/50">
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          position.position === 'Long' 
+                            ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                            : 'bg-red-100 text-red-800 border border-red-200'
+                        }`}>
+                          {position.position.toUpperCase()}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-medium text-xs">{position.trades}</TableCell>
+                      <TableCell className="font-medium text-xs">{position.winPercent}</TableCell>
+                      <TableCell className={`font-bold text-xs ${
+                        position.totalPL.includes('-') ? 'text-red-600' : 'text-green-600'
+                      }`}>
+                        {position.totalPL}
+                      </TableCell>
+                      <TableCell className="font-medium text-xs">{position.avgPercent}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Footer */}
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-700 to-slate-600 text-white">
+          <CardContent className="py-4">
+            <div className="text-center space-y-1">
+              <p className="text-slate-300 text-sm"><span className="font-medium">Source:</span> {parsedReport.source}</p>
+              <p className="text-slate-300 text-sm"><span className="font-medium">Capital base:</span> {parsedReport.capitalBase}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </ScrollArea>
+  );
+
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200 mb-4 flex-shrink-0">
@@ -252,274 +516,34 @@ const ReportDisplay = ({ report, isProcessing }: ReportDisplayProps) => {
             <p className="text-xs text-green-600">Analysis completed</p>
           </div>
         </div>
-        <button 
-          onClick={downloadReport} 
-          className="inline-flex items-center px-4 py-2 bg-white border border-green-200 rounded-lg text-green-700 text-sm font-medium hover:bg-green-50 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md"
-        >
-          <svg className="h-3 w-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Download
-        </button>
+        <div className="flex items-center gap-2">
+          <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
+            <DialogTrigger asChild>
+              <button className="inline-flex items-center px-3 py-2 bg-white border border-green-200 rounded-lg text-green-700 text-sm font-medium hover:bg-green-50 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md">
+                <Maximize2 className="h-3 w-3" />
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-6">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold text-slate-800">Trading Performance Report - Full View</DialogTitle>
+              </DialogHeader>
+              <ReportContent isFullscreen={true} />
+            </DialogContent>
+          </Dialog>
+          
+          <button 
+            onClick={downloadReport} 
+            className="inline-flex items-center px-4 py-2 bg-white border border-green-200 rounded-lg text-green-700 text-sm font-medium hover:bg-green-50 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            <svg className="h-3 w-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download
+          </button>
+        </div>
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="space-y-6 pr-4">
-          {/* Header */}
-          <Card className="bg-gradient-to-r from-slate-800 to-slate-700 text-white border-0">
-            <CardHeader className="text-center py-6">
-              <CardTitle className="text-2xl font-bold mb-2">FUTURES TRADING PERFORMANCE REPORT</CardTitle>
-              <p className="text-slate-300">Generated on: {parsedReport.generatedOn}</p>
-            </CardHeader>
-          </Card>
-
-          {/* Overall Performance */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="text-lg flex items-center">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Overall Performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="text-center p-3 bg-blue-50 rounded-xl border border-blue-100">
-                  <p className="text-2xl font-bold text-blue-600 mb-1">{parsedReport.overallPerformance.totalTrades}</p>
-                  <p className="text-xs text-blue-700 font-medium">Total Trades</p>
-                </div>
-                <div className="text-center p-3 bg-green-50 rounded-xl border border-green-100">
-                  <p className="text-2xl font-bold text-green-600 mb-1">{parsedReport.overallPerformance.winningTrades}</p>
-                  <p className="text-xs text-green-700 font-medium">Winning Trades</p>
-                </div>
-                <div className="text-center p-3 bg-red-50 rounded-xl border border-red-100">
-                  <p className="text-2xl font-bold text-red-600 mb-1">{parsedReport.overallPerformance.losingTrades}</p>
-                  <p className="text-xs text-red-700 font-medium">Losing Trades</p>
-                </div>
-                <div className="text-center p-3 bg-purple-50 rounded-xl border border-purple-100">
-                  <p className="text-2xl font-bold text-purple-600 mb-1">{parsedReport.overallPerformance.winRate}</p>
-                  <p className="text-xs text-purple-700 font-medium">Win Rate</p>
-                </div>
-                <div className="text-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                  <p className="text-2xl font-bold text-emerald-600 mb-1">{parsedReport.overallPerformance.totalPL}</p>
-                  <p className="text-xs text-emerald-700 font-medium">Total P/L</p>
-                </div>
-                <div className="text-center p-3 bg-orange-50 rounded-xl border border-orange-100">
-                  <p className="text-2xl font-bold text-orange-600 mb-1">{parsedReport.overallPerformance.profitFactor}</p>
-                  <p className="text-xs text-orange-700 font-medium">Profit Factor</p>
-                </div>
-              </div>
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl border">
-                <div className="text-center">
-                  <p className="text-xs text-slate-600 mb-1">Average Gain</p>
-                  <p className="font-semibold text-slate-800 text-sm">{parsedReport.overallPerformance.avgGain}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs text-slate-600 mb-1">Average Loss</p>
-                  <p className="font-semibold text-slate-800 text-sm">{parsedReport.overallPerformance.avgLoss}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs text-slate-600 mb-1">Average Size</p>
-                  <p className="font-semibold text-slate-800 text-sm">{parsedReport.overallPerformance.avgSize}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Position Breakdown */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
-            <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-lg">
-              <CardTitle className="text-lg flex items-center">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-                Position Breakdown
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-3 bg-blue-50 rounded-xl border border-blue-100">
-                  <p className="text-xl font-bold text-blue-600 mb-1">{parsedReport.positionBreakdown.longTrades}</p>
-                  <p className="text-xs text-blue-700 font-medium">Long Trades</p>
-                </div>
-                <div className="text-center p-3 bg-red-50 rounded-xl border border-red-100">
-                  <p className="text-xl font-bold text-red-600 mb-1">{parsedReport.positionBreakdown.shortTrades}</p>
-                  <p className="text-xs text-red-700 font-medium">Short Trades</p>
-                </div>
-                <div className="text-center p-3 bg-green-50 rounded-xl border border-green-100">
-                  <p className="text-xl font-bold text-green-600 mb-1">{parsedReport.positionBreakdown.longPL}</p>
-                  <p className="text-xs text-green-700 font-medium">Long P/L</p>
-                </div>
-                <div className="text-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                  <p className="text-xl font-bold text-emerald-600 mb-1">{parsedReport.positionBreakdown.shortPL}</p>
-                  <p className="text-xs text-emerald-700 font-medium">Short P/L</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Realized Trades */}
-          {parsedReport.trades.length > 0 && (
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
-              <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-lg">
-                <CardTitle className="text-lg flex items-center">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                  </svg>
-                  Realized Trades ({parsedReport.trades.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-slate-50 hover:bg-slate-50">
-                        <TableHead className="font-semibold text-slate-700 text-xs">ID</TableHead>
-                        <TableHead className="font-semibold text-slate-700 text-xs">Symbol</TableHead>
-                        <TableHead className="font-semibold text-slate-700 text-xs">Position</TableHead>
-                        <TableHead className="font-semibold text-slate-700 text-xs">Entry Time</TableHead>
-                        <TableHead className="font-semibold text-slate-700 text-xs">Exit Time</TableHead>
-                        <TableHead className="font-semibold text-slate-700 text-xs">Qty</TableHead>
-                        <TableHead className="font-semibold text-slate-700 text-xs">Entry</TableHead>
-                        <TableHead className="font-semibold text-slate-700 text-xs">Exit</TableHead>
-                        <TableHead className="font-semibold text-slate-700 text-xs">Profit</TableHead>
-                        <TableHead className="font-semibold text-slate-700 text-xs">Gain %</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {parsedReport.trades.map((trade, index) => (
-                        <TableRow key={index} className="hover:bg-slate-50/50">
-                          <TableCell className="font-medium text-slate-600 text-xs">{trade.id}</TableCell>
-                          <TableCell className="font-bold text-slate-800 text-xs">{trade.symbol}</TableCell>
-                          <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              trade.position === 'long' 
-                                ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                                : 'bg-red-100 text-red-800 border border-red-200'
-                            }`}>
-                              {trade.position.toUpperCase()}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-xs text-slate-600 font-mono">{trade.entryTime}</TableCell>
-                          <TableCell className="text-xs text-slate-600 font-mono">{trade.exitTime}</TableCell>
-                          <TableCell className="font-medium text-xs">{trade.qty}</TableCell>
-                          <TableCell className="font-mono text-xs">{trade.entry}</TableCell>
-                          <TableCell className="font-mono text-xs">{trade.exit}</TableCell>
-                          <TableCell className={`font-bold text-xs ${
-                            trade.profit.includes('-') ? 'text-red-600' : 'text-green-600'
-                          }`}>
-                            {trade.profit}
-                          </TableCell>
-                          <TableCell className={`font-medium text-xs ${
-                            trade.gainPercent.includes('-') ? 'text-red-600' : 'text-green-600'
-                          }`}>
-                            {trade.gainPercent}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Performance by Product */}
-          {parsedReport.performanceByProduct.length > 0 && (
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
-              <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
-                <CardTitle className="text-lg">Performance by Product</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-slate-50 hover:bg-slate-50">
-                      <TableHead className="font-semibold text-slate-700 text-xs">Symbol</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-xs">Type</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-xs">Trades</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-xs">Win %</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-xs">Total P/L</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-xs">Avg %</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {parsedReport.performanceByProduct.map((product, index) => (
-                      <TableRow key={index} className="hover:bg-slate-50/50">
-                        <TableCell className="font-bold text-slate-800 text-xs">{product.symbol}</TableCell>
-                        <TableCell className="text-slate-600 text-xs">{product.type}</TableCell>
-                        <TableCell className="font-medium text-xs">{product.trades}</TableCell>
-                        <TableCell className="font-medium text-xs">{product.winPercent}</TableCell>
-                        <TableCell className={`font-bold text-xs ${
-                          product.totalPL.includes('-') ? 'text-red-600' : 'text-green-600'
-                        }`}>
-                          {product.totalPL}
-                        </TableCell>
-                        <TableCell className="font-medium text-xs">{product.avgPercent}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Performance by Position Type */}
-          {parsedReport.performanceByPosition.length > 0 && (
-            <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-slate-50">
-              <CardHeader className="bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-t-lg">
-                <CardTitle className="text-lg">Performance by Position Type</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-slate-50 hover:bg-slate-50">
-                      <TableHead className="font-semibold text-slate-700 text-xs">Position</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-xs">Trades</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-xs">Win %</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-xs">Total P/L</TableHead>
-                      <TableHead className="font-semibold text-slate-700 text-xs">Avg %</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {parsedReport.performanceByPosition.map((position, index) => (
-                      <TableRow key={index} className="hover:bg-slate-50/50">
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            position.position === 'Long' 
-                              ? 'bg-blue-100 text-blue-800 border border-blue-200' 
-                              : 'bg-red-100 text-red-800 border border-red-200'
-                          }`}>
-                            {position.position.toUpperCase()}
-                          </span>
-                        </TableCell>
-                        <TableCell className="font-medium text-xs">{position.trades}</TableCell>
-                        <TableCell className="font-medium text-xs">{position.winPercent}</TableCell>
-                        <TableCell className={`font-bold text-xs ${
-                          position.totalPL.includes('-') ? 'text-red-600' : 'text-green-600'
-                        }`}>
-                          {position.totalPL}
-                        </TableCell>
-                        <TableCell className="font-medium text-xs">{position.avgPercent}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Footer */}
-          <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-700 to-slate-600 text-white">
-            <CardContent className="py-4">
-              <div className="text-center space-y-1">
-                <p className="text-slate-300 text-sm"><span className="font-medium">Source:</span> {parsedReport.source}</p>
-                <p className="text-slate-300 text-sm"><span className="font-medium">Capital base:</span> {parsedReport.capitalBase}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </ScrollArea>
+      <ReportContent />
     </div>
   );
 };
