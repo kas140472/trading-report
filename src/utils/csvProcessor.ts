@@ -101,26 +101,42 @@ function parseTimestamp(timestampStr: string): Date {
 function detectCSVFormat(headers: string[]): { hasDeployColumn: boolean; columnMapping: { [key: string]: number } } {
   console.log('Detecting CSV format from headers:', headers);
   
-  const hasDeployColumn = headers[0].toLowerCase().includes('deploy');
+  const hasDeployColumn = headers.some(header => header.toLowerCase().includes('deploy'));
   const columnMapping: { [key: string]: number } = {};
   
   if (hasDeployColumn) {
     // Format: Deploy,Time,Symbol,Price,Quantity,Type,Status,Value,Tag
-    columnMapping['Deploy'] = 0;
-    columnMapping['Time'] = 1;
-    columnMapping['Symbol'] = 2;
-    columnMapping['Price'] = 3;
-    columnMapping['Quantity'] = 4;
-    columnMapping['Type'] = 5;
-    columnMapping['Status'] = 6;
-    columnMapping['Value'] = 7;
-    columnMapping['Tag'] = 8;
+    const expectedHeaders = ['Deploy', 'Time', 'Symbol', 'Price', 'Quantity', 'Type', 'Status', 'Value', 'Tag'];
+    expectedHeaders.forEach((expectedHeader, index) => {
+      // Find the actual header that matches (case-insensitive)
+      const actualHeaderIndex = headers.findIndex(h => 
+        h.toLowerCase().trim() === expectedHeader.toLowerCase()
+      );
+      if (actualHeaderIndex !== -1) {
+        columnMapping[expectedHeader] = actualHeaderIndex;
+      } else {
+        // Fallback to position-based mapping if header names don't match exactly
+        if (index < headers.length) {
+          columnMapping[expectedHeader] = index;
+        }
+      }
+    });
   } else {
     // Format: Time,Symbol,Price,Quantity,Type,Status,Value,Tag
-    // Find column indices by matching header names
-    headers.forEach((header, index) => {
-      const normalizedHeader = header.trim();
-      columnMapping[normalizedHeader] = index;
+    const expectedHeaders = ['Time', 'Symbol', 'Price', 'Quantity', 'Type', 'Status', 'Value', 'Tag'];
+    expectedHeaders.forEach((expectedHeader, index) => {
+      // Find the actual header that matches (case-insensitive)
+      const actualHeaderIndex = headers.findIndex(h => 
+        h.toLowerCase().trim() === expectedHeader.toLowerCase()
+      );
+      if (actualHeaderIndex !== -1) {
+        columnMapping[expectedHeader] = actualHeaderIndex;
+      } else {
+        // Fallback to position-based mapping if header names don't match exactly
+        if (index < headers.length) {
+          columnMapping[expectedHeader] = index;
+        }
+      }
     });
   }
   
@@ -142,7 +158,7 @@ async function loadOrdersFromCSV(file: File): Promise<Order[]> {
           return;
         }
         
-        const headers = lines[0].split(',').map(h => h.trim());
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
         console.log('CSV Headers:', headers);
         
         // Detect CSV format and get column mapping
@@ -169,9 +185,25 @@ async function loadOrdersFromCSV(file: File): Promise<Order[]> {
           const line = lines[i].trim();
           if (!line) continue;
           
-          const values = line.split(',').map(v => v.trim());
+          // Parse CSV line properly handling quoted values
+          const values: string[] = [];
+          let current = '';
+          let inQuotes = false;
           
-          if (values.length < headers.length) continue;
+          for (let j = 0; j < line.length; j++) {
+            const char = line[j];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              values.push(current.trim().replace(/^"|"$/g, ''));
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          values.push(current.trim().replace(/^"|"$/g, ''));
+          
+          if (values.length < Math.max(...Object.values(columnMapping)) + 1) continue;
           
           try {
             const timeValue = values[columnMapping['Time']] || '';
@@ -182,6 +214,12 @@ async function loadOrdersFromCSV(file: File): Promise<Order[]> {
             const statusValue = values[columnMapping['Status']] || '';
             const valueValue = values[columnMapping['Value']] || '';
             const tagValue = values[columnMapping['Tag']] || '';
+            
+            // Skip rows with invalid or missing critical data
+            if (!timeValue || !symbolValue || !priceValue || !quantityValue) {
+              console.warn(`Skipping row ${i + 1}: missing critical data`);
+              continue;
+            }
             
             const order: Order = {
               timestamp: parseTimestamp(timeValue),
@@ -196,7 +234,10 @@ async function loadOrdersFromCSV(file: File): Promise<Order[]> {
               multiplier: getMultiplier(symbolValue)
             };
             
-            orders.push(order);
+            // Only add orders with valid data
+            if (order.price > 0 && order.quantity !== 0) {
+              orders.push(order);
+            }
           } catch (error) {
             console.warn(`Error processing row ${i + 1}:`, error);
           }
