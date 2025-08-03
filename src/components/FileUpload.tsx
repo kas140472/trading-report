@@ -84,30 +84,27 @@ const FileUpload = ({ onFileProcessed, onError, isProcessing, setIsProcessing, o
     <div className="space-y-4">
       {!selectedFile ? (
         <div
-          className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 backdrop-blur-sm ${
+          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
             dragActive 
-              ? 'border-cyan-400 bg-cyan-400/10 shadow-lg shadow-cyan-500/25' 
-              : 'border-white/30 hover:border-white/50 bg-white/5 hover:bg-white/10'
+              ? 'border-blue-400 bg-blue-50' 
+              : 'border-gray-300 hover:border-gray-400'
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
         >
-          <div className="relative">
-            <Upload className="mx-auto h-16 w-16 text-cyan-300 mb-4 drop-shadow-lg" />
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-20 blur-2xl rounded-full"></div>
-          </div>
-          <p className="text-xl font-semibold text-white mb-2 drop-shadow-sm">
+          <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <p className="text-lg font-medium text-gray-900 mb-2">
             Drop your CSV file here
           </p>
-          <p className="text-sm text-slate-300 mb-6">
+          <p className="text-sm text-gray-600 mb-4">
             or click to browse files
           </p>
           <Button
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
-            className="relative bg-white/20 border-white/30 text-white hover:bg-white/30 hover:border-white/50 backdrop-blur-sm transition-all duration-300 hover:scale-105"
+            className="relative"
           >
             Select File
           </Button>
@@ -118,21 +115,18 @@ const FileUpload = ({ onFileProcessed, onError, isProcessing, setIsProcessing, o
             onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
             className="hidden"
           />
-          <p className="text-xs text-slate-400 mt-6">
+          <p className="text-xs text-gray-500 mt-4">
             Maximum file size: 10MB • Supported format: CSV
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-3">
-              <div className="relative">
-                <FileText className="h-10 w-10 text-cyan-300" />
-                <div className="absolute inset-0 bg-cyan-400 opacity-20 blur-lg rounded-full"></div>
-              </div>
+              <FileText className="h-8 w-8 text-blue-600" />
               <div>
-                <p className="font-semibold text-white">{selectedFile.name}</p>
-                <p className="text-sm text-slate-300">
+                <p className="font-medium text-gray-900">{selectedFile.name}</p>
+                <p className="text-sm text-gray-600">
                   {(selectedFile.size / 1024).toFixed(1)} KB
                 </p>
               </div>
@@ -142,7 +136,6 @@ const FileUpload = ({ onFileProcessed, onError, isProcessing, setIsProcessing, o
               size="sm"
               onClick={resetFile}
               disabled={isProcessing}
-              className="text-slate-300 hover:text-white hover:bg-white/20 transition-all duration-200"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -151,7 +144,7 @@ const FileUpload = ({ onFileProcessed, onError, isProcessing, setIsProcessing, o
           <Button 
             onClick={processFile} 
             disabled={isProcessing}
-            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white border-0 shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-300 hover:scale-105"
+            className="w-full"
             size="lg"
           >
             {isProcessing ? (
