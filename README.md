@@ -1,6 +1,6 @@
 ## Project info
 
-**URL**: [trading-metrics.lovable.app](https://trading-metrics.lovable.app/)
+**URL**: [trading-report.lovable.app](https://trading-report.lovable.app/)
 
 ## Tech Stack
 
