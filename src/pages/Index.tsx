@@ -46,7 +46,7 @@ const Index = () => {
           </div>
 
           {/* Main Content - Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
             {/* Upload Section */}
             <Card className="p-6 shadow-xl border-0 bg-white/90 backdrop-blur-sm flex flex-col">
               <div className="text-center mb-6">
@@ -87,7 +87,7 @@ const Index = () => {
             </Card>
 
             {/* Report Section */}
-            <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm flex flex-col min-h-0">
+            <Card className="lg:col-span-2 shadow-xl border-0 bg-white/90 backdrop-blur-sm flex flex-col min-h-0">
               <div className="p-6 border-b border-slate-200 flex-shrink-0">
                 <div className="text-center">
                   <div className="inline-flex items-center justify-center w-10 h-10 bg-green-100 rounded-xl mb-3">
