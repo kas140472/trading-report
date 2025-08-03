@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Download, FileText, Loader2, Maximize2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,6 +20,8 @@ interface ParsedReport {
     winRate: string;
     avgGain: string;
     avgLoss: string;
+    avgGainDollar: string;
+    avgLossDollar: string;
     totalPL: string;
     profitFactor: string;
     avgSize: string;
@@ -80,9 +81,11 @@ const parseReport = (reportText: string): ParsedReport => {
     winRate: lines[overallStart + 5]?.split('Win Rate:')[1]?.trim() || '',
     avgGain: lines[overallStart + 6]?.split('Average Gain:')[1]?.trim() || '',
     avgLoss: lines[overallStart + 7]?.split('Average Loss:')[1]?.trim() || '',
-    totalPL: lines[overallStart + 8]?.split('Total P/L:')[1]?.trim() || '',
-    profitFactor: lines[overallStart + 9]?.split('Profit Factor:')[1]?.trim() || '',
-    avgSize: lines[overallStart + 10]?.split('Average Size:')[1]?.trim() || '',
+    avgGainDollar: lines[overallStart + 8]?.split('Avg Gain ($):')[1]?.trim() || '',
+    avgLossDollar: lines[overallStart + 9]?.split('Avg Loss ($):')[1]?.trim() || '',
+    totalPL: lines[overallStart + 10]?.split('Total P/L:')[1]?.trim() || '',
+    profitFactor: lines[overallStart + 11]?.split('Profit Factor:')[1]?.trim() || '',
+    avgSize: lines[overallStart + 12]?.split('Average Size:')[1]?.trim() || '',
   };
 
   // Extract position breakdown
@@ -290,14 +293,22 @@ const ReportDisplay = ({ report, isProcessing }: ReportDisplayProps) => {
                 <p className="text-xs text-orange-700 font-medium">Profit Factor</p>
               </div>
             </div>
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl border">
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-slate-50 rounded-xl border">
               <div className="text-center">
-                <p className="text-xs text-slate-600 mb-1">Average Gain</p>
+                <p className="text-xs text-slate-600 mb-1">Average Gain %</p>
                 <p className="font-semibold text-slate-800 text-sm">{parsedReport.overallPerformance.avgGain}</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-slate-600 mb-1">Average Loss</p>
+                <p className="text-xs text-slate-600 mb-1">Average Loss %</p>
                 <p className="font-semibold text-slate-800 text-sm">{parsedReport.overallPerformance.avgLoss}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-slate-600 mb-1">Avg Gain $</p>
+                <p className="font-semibold text-green-700 text-sm">{parsedReport.overallPerformance.avgGainDollar}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-slate-600 mb-1">Avg Loss $</p>
+                <p className="font-semibold text-red-700 text-sm">{parsedReport.overallPerformance.avgLossDollar}</p>
               </div>
               <div className="text-center">
                 <p className="text-xs text-slate-600 mb-1">Average Size</p>

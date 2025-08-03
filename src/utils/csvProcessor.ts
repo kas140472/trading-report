@@ -51,6 +51,8 @@ interface Metrics {
   winPercentage: number;
   avgGain: number;
   avgLoss: number;
+  avgGainDollar: number;
+  avgLossDollar: number;
   totalProfit: number;
   profitFactor: number;
   avgSize: number;
@@ -455,6 +457,8 @@ function calculateMetrics(trades: Trade[]): Metrics {
       winPercentage: 0,
       avgGain: 0,
       avgLoss: 0,
+      avgGainDollar: 0,
+      avgLossDollar: 0,
       totalProfit: 0,
       profitFactor: 0,
       avgSize: 0,
@@ -480,6 +484,13 @@ function calculateMetrics(trades: Trade[]): Metrics {
     winningTrades.reduce((sum, t) => sum + t.percentGain, 0) / winningTrades.length : 0;
   const avgLoss = losingTrades.length > 0 ? 
     Math.abs(losingTrades.reduce((sum, t) => sum + t.percentGain, 0) / losingTrades.length) : 0;
+  
+  // Calculate actual dollar averages
+  const avgGainDollar = winningTrades.length > 0 ? 
+    winningTrades.reduce((sum, t) => sum + t.profit, 0) / winningTrades.length : 0;
+  const avgLossDollar = losingTrades.length > 0 ? 
+    Math.abs(losingTrades.reduce((sum, t) => sum + t.profit, 0) / losingTrades.length) : 0;
+    
   const avgSize = trades.reduce((sum, t) => sum + t.size, 0) / trades.length;
   
   const profitFactor = totalLosses > 0 ? totalGains / totalLosses : Number.POSITIVE_INFINITY;
@@ -491,6 +502,8 @@ function calculateMetrics(trades: Trade[]): Metrics {
     winPercentage: (winningTrades.length / trades.length) * 100,
     avgGain,
     avgLoss,
+    avgGainDollar,
+    avgLossDollar,
     totalProfit,
     profitFactor,
     avgSize,
@@ -523,6 +536,8 @@ function generateReport(trades: Trade[], openPositions: OpenPosition[], metrics:
     `Win Rate:        ${metrics.winPercentage.toFixed(1)}%`,
     `Average Gain:    ${metrics.avgGain.toFixed(2)}%`,
     `Average Loss:    ${metrics.avgLoss.toFixed(2)}%`,
+    `Avg Gain ($):    $${metrics.avgGainDollar.toFixed(2)}`,
+    `Avg Loss ($):    $${metrics.avgLossDollar.toFixed(2)}`,
     `Total P/L:       $${metrics.totalProfit.toFixed(2)}`,
     `Profit Factor:   ${metrics.profitFactor.toFixed(2)}`,
     `Average Size:    ${metrics.avgSize.toFixed(2)}% of capital`,
