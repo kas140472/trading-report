@@ -530,8 +530,10 @@ const ReportDisplay = ({ report, isProcessing }: ReportDisplayProps) => {
         <div className="flex items-center gap-2">
           <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
             <DialogTrigger asChild>
-              <button className="inline-flex items-center px-3 py-2 bg-white border border-green-200 rounded-lg text-green-700 text-sm font-medium hover:bg-green-50 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <Maximize2 className="h-3 w-3" />
+              <button className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-green-200 rounded-lg text-green-700 text-sm font-medium hover:bg-green-50 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md">
+                <Maximize2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Expand to Full Screen</span>
+                <span className="sm:hidden">Expand</span>
               </button>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-6">
